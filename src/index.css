@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;600;800&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&display=swap');
+@import "tailwindcss";
+
+/* 
+  Standard CSS variables used here to prevent IDE "Unknown at rule" warnings.
+  These are mapped to Tailwind utilities in tailwind.config.js
+*/
+:root {
+  --font-serif: "Cinzel", Georgia, serif;
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-cursive: "Great Vibes", cursive;
+  --font-cormorant: "Cormorant Garamond", serif;
+  --font-outfit: 'Outfit', sans-serif;
+  --font-serif-elegant: 'Cormorant Garamond', serif;
+}
+
+body {
+  font-family: var(--font-outfit);
+}
+
+/* Custom gorgeous scrollbar for clean modals */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(236, 72, 153, 0.2);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 72, 153, 0.4);
+}
+
+/* Glowing text effects */
+.glow-pink-sm {
+  text-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+}
+.glow-pink-lg {
+  text-shadow: 0 0 25px rgba(244, 63, 94, 0.8), 0 0 45px rgba(232, 121, 249, 0.5);
+}
+
+/* Soft wavy divider gradient */
+.wave-mask {
+  mask-image: radial-gradient(circle at 50% 100%, black 60%, transparent 60%);
+}
+
+/* Keyframe Animations */
+@keyframes floatButterfly {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(10px, -18px) rotate(8deg) scale(1.05);
+  }
+  66% {
+    transform: translate(-10px, -30px) rotate(-8deg) scale(0.95);
+  }
+}
+
+@keyframes riseBubble {
+  0% {
+    transform: translateY(0) scale(0.2);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-160px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(110vh) scale(0.6) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--op, 0.5);
+  }
+  90% {
+    opacity: var(--op, 0.5);
+  }
+  100% {
+    transform: translateY(-10vh) scale(1.1) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fallPetal {
+  0% {
+    transform: translateY(-10vh) translateX(0px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) translateX(120px) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
+}
+
+@keyframes elegantWingFlap {
+  0%, 100% {
+    transform: scale(1) translateY(0) rotate(-4deg);
+    filter: drop-shadow(0 0 15px rgba(236,72,153,0.95)) drop-shadow(0 0 5px rgba(34,211,238,0.7));
+  }
+  50% {
+    transform: scale(1.15) translateY(-12px) rotate(4deg);
+    filter: drop-shadow(0 0 28px rgba(236,72,153,1)) drop-shadow(0 0 10px rgba(34,211,238,0.95));
+  }
+}

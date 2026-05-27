@@ -1,0 +1,6 @@
+{
+  "name": "For Dikshu",
+  "description": "An interactive, beautifully crafted apology and memory portfolio with glowing aesthetics, floating butterflies, custom animations, and heartfelt messages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
