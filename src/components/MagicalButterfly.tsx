@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { motion, AnimatePresence } from 'motion/react';
 
 // Cute celestial chime arpeggio on interaction using Web Audio API
 const playChimeSound = () => {
@@ -10,7 +11,7 @@ const playChimeSound = () => {
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const now = ctx.currentTime;
-    
+
     const notes = [587.33, 659.25, 783.99, 987.77, 1174.66, 1318.51, 1567.98];
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
@@ -64,6 +65,9 @@ function ButterflyScene({
   const particleIdCounter = useRef(0);
 
   const isDesktop = viewport.width > viewport.height;
+
+  // Set scale sizes exactly as requested (0.70 for desktop, 0.45 for mobile)
+  const scale = isDesktop ? 0.70 : 0.45;
 
   const wingShape = useMemo(() => {
     const shape = new THREE.Shape();
@@ -160,7 +164,8 @@ function ButterflyScene({
 
   return (
     <group>
-      <group ref={butterflyRef} onDoubleClick={triggerFlight} onClick={triggerFlight}>
+      {/* Assigning the scaled arrays directly to make group 2x smaller */}
+      <group ref={butterflyRef} scale={[scale, scale, scale]} onDoubleClick={triggerFlight} onClick={triggerFlight}>
         <group>
           <mesh ref={leftWing} position={[-0.02, 0, 0]}>
             <shapeGeometry args={[wingShape]} />
@@ -194,7 +199,7 @@ function ButterflyScene({
         {!isFlying && !hasLanded && (
           <Html position={[0, 0.6, 0]} center>
             <div className="px-3 py-1.5 rounded-full bg-pink-950/90 border border-pink-500/35 text-[10px] sm:text-xs font-mono font-bold tracking-widest text-pink-200 animate-pulse whitespace-nowrap shadow-xl cursor-pointer select-none">
-              Double Click Me 🦋
+              Double Click Me {'\ud83e\udd8b'}
             </div>
           </Html>
         )}
@@ -209,11 +214,101 @@ function ButterflyScene({
   );
 }
 
+interface FullPageSparkle {
+  id: string;
+  char: string;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  size: number;
+  duration: number;
+  delay: number;
+  scaleStart: number;
+  scaleEnd: number;
+  rotateStart: number;
+  rotateEnd: number;
+  glowColor: string;
+}
+
+const BURST_EMOJI_POOL = [
+  '\u2728',
+  '\ud83d\udc96',
+  '\ud83c\udf38',
+  '\ud83d\udcab',
+  '\ud83e\udd8b',
+  '\ud83c\udf37',
+  '\ud83e\udef6',
+  '\ud83e\udd0d',
+  '\ud83d\udc97',
+  '\ud83c\udf53',
+  '\ud83e\uddc1',
+];
+const GLOW_COLORS = [
+  'rgba(253, 224, 71, 0.7)',  // gold
+  'rgba(244, 114, 182, 0.7)', // pink
+  'rgba(168, 85, 247, 0.7)', // purple
+  'rgba(59, 130, 246, 0.6)'   // blue
+];
+
 export default function MagicalButterfly() {
   const [isFlying, setIsFlying] = useState(false);
   const [hasLanded, setHasLanded] = useState(false);
   const [progress, setProgress] = useState(0);
   const [trail, setTrail] = useState<SparkleParticle[]>([]);
+  const [showFullPageBurst, setShowFullPageBurst] = useState(false);
+  const [pageBurstParticles, setPageBurstParticles] = useState<FullPageSparkle[]>([]);
+
+  useEffect(() => {
+    if (isFlying) {
+      setShowFullPageBurst(true);
+
+      const count = 42; // Majestic, rich burst count
+      const now = Date.now();
+      const newParticles: FullPageSparkle[] = Array.from({ length: count }).map((_, idx) => {
+        const char = BURST_EMOJI_POOL[Math.floor(Math.random() * BURST_EMOJI_POOL.length)];
+        const glowColor = GLOW_COLORS[Math.floor(Math.random() * GLOW_COLORS.length)];
+
+        // Decide if starting near left-center (butterfly takeoff area) vs random ambient rise
+        const isFromButterfly = Math.random() > 0.35;
+        const startX = isFromButterfly
+          ? 20 + Math.random() * 25 // Takeoff region roughly near hero content
+          : Math.random() * 100;    // Anywhere across width
+
+        const startY = isFromButterfly
+          ? 35 + Math.random() * 25
+          : 80 + Math.random() * 20; // Bottom region
+
+        const endX = startX + (Math.random() - 0.5) * 60;
+        const endY = startY - 70 - Math.random() * 55;
+
+        return {
+          id: `pg-${now}-${idx}-${Math.random()}`,
+          char,
+          startX,
+          startY,
+          endX,
+          endY,
+          size: 18 + Math.random() * 32, // varying beautiful sizes
+          duration: 2.2 + Math.random() * 1.8, // 2.2s to 4.0s
+          delay: Math.random() * 0.5, // beautifully staggered launch
+          scaleStart: 0.15,
+          scaleEnd: 1.1 + Math.random() * 0.9,
+          rotateStart: (Math.random() - 0.5) * 60,
+          rotateEnd: (Math.random() - 0.5) * 480 + (Math.random() > 0.5 ? 240 : -240),
+          glowColor,
+        };
+      });
+
+      setPageBurstParticles(newParticles);
+
+      const timer = setTimeout(() => {
+        setShowFullPageBurst(false);
+      }, 4500); // 4.5 seconds majestic duration
+
+      return () => clearTimeout(timer);
+    }
+  }, [isFlying]);
 
   const handleReset = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -225,6 +320,85 @@ export default function MagicalButterfly() {
 
   return (
     <div className="absolute inset-0 w-full h-full pointer-events-none select-none z-30">
+
+      {/* Full-Page Magical Stardust Symphony Overlay */}
+      <AnimatePresence>
+        {showFullPageBurst && (
+          <>
+            {/* Ambient Pulsating Backdrop Blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: [0, 0.45, 0.6, 0.35, 0],
+                background: [
+                  "radial-gradient(circle, rgba(244,114,182,0.2) 0%, rgba(139,92,246,0.1) 40%, transparent 80%)",
+                  "radial-gradient(circle, rgba(139,92,246,0.2) 0%, rgba(59,130,246,0.1) 40%, transparent 80%)",
+                  "radial-gradient(circle, rgba(236,72,153,0.15) 0%, rgba(244,114,182,0.05) 55%, transparent 90%)"
+                ]
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 4.5, ease: "easeInOut" }}
+              className="fixed inset-0 pointer-events-none z-[80]"
+            />
+
+            {/* Glowing Aurora Ambient Flares */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{
+                opacity: [0, 0.5, 0.3, 0],
+                scale: [0.85, 1.1, 1.25, 1.3],
+                rotate: [0, 15, -10, 5]
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 4.5, ease: "easeOut" }}
+              className="fixed inset-0 pointer-events-none z-[81] bg-[radial-gradient(circle_at_25%_45%,rgba(244,114,182,0.18),transparent_50%),radial-gradient(circle_at_75%_35%,rgba(168,85,247,0.18),transparent_55%)] filter blur-3xl"
+            />
+
+            {/* 42 Floating Magical Stardust Emojis & Sprites */}
+            <div className="fixed inset-0 pointer-events-none select-none z-[99] overflow-hidden">
+              {pageBurstParticles.map((pt) => {
+                const normalizedXStr = `${pt.startX}vw`;
+                const normalizedYStr = `${pt.startY}vh`;
+                const driftXStr = `${pt.endX}vw`;
+                const driftYStr = `${pt.endY}vh`;
+
+                return (
+                  <motion.div
+                    key={pt.id}
+                    initial={{
+                      x: normalizedXStr,
+                      y: normalizedYStr,
+                      opacity: 0,
+                      scale: pt.scaleStart,
+                      rotate: pt.rotateStart,
+                    }}
+                    animate={{
+                      x: driftXStr,
+                      y: driftYStr,
+                      opacity: [0, 0.95, 0.8, 0],
+                      scale: [pt.scaleStart, pt.scaleEnd, pt.scaleEnd * 0.9, 0],
+                      rotate: pt.rotateEnd,
+                    }}
+                    transition={{
+                      duration: pt.duration,
+                      delay: pt.delay,
+                      ease: "easeOut",
+                    }}
+                    className="absolute select-none pointer-events-none"
+                    style={{
+                      fontSize: `${pt.size}px`,
+                      filter: `drop-shadow(0 0 10px ${pt.glowColor})`,
+                    }}
+                  >
+                    {pt.char}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
       <Canvas camera={{ position: [0, 0, 4.2], fov: 48 }} gl={{ antialias: true, alpha: true }} className="w-full h-full pointer-events-auto">
         <ambientLight intensity={0.9} />
         <pointLight position={[5, 5, 5]} intensity={1} color="#ffd4e6" />
@@ -242,14 +416,15 @@ export default function MagicalButterfly() {
         </React.Suspense>
       </Canvas>
       {hasLanded && (
-        <div className="absolute top-[8%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 px-4 py-2 bg-pink-950/20 border border-pink-500/15 backdrop-blur-md rounded-2xl pointer-events-auto shadow-2xl z-50 animate-fade-in">
-          <span className="font-serif italic text-pink-200 text-xs font-black tracking-wide">“A gift for you...”</span>
+        // Adjusted top spacing from top-[8%] to top-[8%] sm:top-36 to clear desktop headers
+        <div className="absolute top-[8%] sm:top-36 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 px-4 py-2 bg-pink-950/20 border border-pink-500/15 backdrop-blur-md rounded-2xl pointer-events-auto shadow-2xl z-50 animate-[fadeIn_0.5s_ease-out_forwards]">
+          <span className="font-serif italic text-pink-200 text-xs font-black tracking-wide">{'\u201c'}A gift for you...{'\u201d'}</span>
           <button
             type="button"
             onClick={handleReset}
             className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase font-mono tracking-widest text-[#ffe3f2] hover:text-white bg-pink-600/30 hover:bg-pink-600/70 border border-pink-400/20 px-4 py-2 rounded-full transition-all cursor-pointer"
           >
-            Send Back 🦋
+            Send Back {'\ud83e\udd8b'}
           </button>
         </div>
       )}
